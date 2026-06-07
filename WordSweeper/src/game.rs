@@ -179,9 +179,32 @@ impl GameState {
             }
         }
     }
+
+    pub fn handle_letter_click(&mut self, letter: char, is_right_click: bool) {
+        let letter = letter.to_ascii_uppercase();
+
+        if let Some(current_state) = self.letter_states.get_mut(&letter) {
+            match (is_right_click, *current_state) {
+                (false, LetterState::Selected) => *current_state = LetterState::Neutral,
+                (false, _) => *current_state = LetterState::Selected,
+                
+                (true, LetterState::Rejected) => *current_state = LetterState::Neutral,
+                (true, _) => *current_state = LetterState::Rejected,
+            }
+        }
+    }
+
+    pub fn get_selected_letters(&self) -> Vec<char> {
+        self.letter_states
+            .iter()
+            .filter(|&(_, state)| *state == LetterState::Selected)
+            .map(|(&ch, _)| ch)
+            .collect()
+    }
 }
 
-enum LetterFeedback {
+
+pub enum LetterFeedback {
     Correct,
     Misplaced,
     Absent,
