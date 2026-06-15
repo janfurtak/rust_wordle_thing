@@ -70,12 +70,4 @@ impl GameState {
             }
         }
     }
-
-    pub fn get_selected_letters(&self) -> Vec<char> {
-        self.letter_states
-            .iter()
-            .filter(|&(_, state)| *state == LetterState::Selected)
-            .map(|(&ch, _)| ch)
-            .collect()
-    }
 }

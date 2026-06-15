@@ -7,7 +7,7 @@ use gui::WordSweeperApp;
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
-            .with_inner_size([600.0, 600.0])
+            .with_inner_size([700.0, 700.0])
             .with_resizable(true),
         ..Default::default()
     };
