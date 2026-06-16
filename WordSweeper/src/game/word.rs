@@ -1,8 +1,11 @@
+use std::collections::HashMap;
+
 use rand::seq::SliceRandom;
 use rand::Rng;
 
 use super::state::Difficulty;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LetterFeedback {
     Correct,
     Misplaced,
@@ -33,16 +36,45 @@ pub fn draw_target_word(game_difficulty: &Difficulty, rng: &mut impl Rng) -> Str
 
 pub fn guess_word(guess: &str, target_word: &str) -> Vec<LetterFeedback> {
     let guess = guess.to_uppercase();
-    let mut feedback = Vec::new();
+    let target_word = target_word.to_uppercase();
+    
+    let mut remaining_target_chars: HashMap<char, i8> = HashMap::new();
+    for c in target_word.chars() {
+        *remaining_target_chars.entry(c).or_insert(0) += 1;
+    }
 
-    for (g, t) in guess.chars().zip(target_word.chars()) {
-        if g == t {
-            feedback.push(LetterFeedback::Correct);
-        } else if target_word.contains(g) {
-            feedback.push(LetterFeedback::Misplaced);
-        } else {
-            feedback.push(LetterFeedback::Absent);
+    // Inicjalizujemy wektor feedbacku domyślnymi wartościami (np. Absent)
+    let mut feedback = vec![LetterFeedback::Absent; target_word.len()];
+    let guess_chars: Vec<char> = guess.chars().collect();
+    let target_chars: Vec<char> = target_word.chars().collect();
+
+    // Szukamy tylko poprawnych trafień
+    for i in 0..guess_chars.len() {
+        if guess_chars[i] == target_chars[i] {
+            feedback[i] = LetterFeedback::Correct;
+            if let Some(count) = remaining_target_chars.get_mut(&guess_chars[i]) {
+                *count -= 1;
+            }
         }
+    }
+
+    // Szukamy liter na złych miejscach oraz nieobecnych
+    for i in 0..guess_chars.len() {
+        // Pomijamy pozycje, które już dostały zielony kolor
+        if feedback[i] == LetterFeedback::Correct {
+            continue;
+        }
+
+        let g = guess_chars[i];
+        if let Some(count) = remaining_target_chars.get_mut(&g) {
+            if *count > 0 {
+                feedback[i] = LetterFeedback::Misplaced;
+                *count -= 1;
+                continue;
+            }
+        }
+        
+        feedback[i] = LetterFeedback::Absent;
     }
 
     feedback
